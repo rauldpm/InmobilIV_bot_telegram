@@ -41,6 +41,7 @@ type Vivienda struct {
 	Letra  string  `json:"letra"`
 }
 
+// Funcion serverless
 func Handler(w http.ResponseWriter, r *http.Request) {
 	
 	//Obtiene el payload
