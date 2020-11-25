@@ -59,7 +59,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			switch update.Message.Command() {
 				// Establece el error
 				case "autor":
-					text = "Raúl Del Pozo Moreno, estudiante de la Universidad de Granada. Bot desarrollado para la asignatura IV"
+					text = "Raúl Del Pozo Moreno, estudiante de la Universidad de Granada. Bot desarrollado para la asignatura IV."
 				// Indica la cantidad de inmuebles disponibles
 				case "cantidad":
 					// Obtiene el fichero de datos
