@@ -63,7 +63,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				// Indica la cantidad de inmuebles disponibles
 				case "cantidad":
 					// Obtiene el fichero de datos
-					file, err := http.Get("https://raw.githubusercontent.com/rauldpm/InmobilIV/master/data/data.json")
+					file, err := http.Get("https://github.com/rauldpm/InmobilIV/blob/master/app/src/main/resources/data/data.json")
 					if err != nil {
 						fmt.Println(err)
 					}
@@ -84,7 +84,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				// Indica todos los inmuebles disponibles
 				case "todo":
 					// Obtiene el fichero de datos
-					file, err := http.Get("https://raw.githubusercontent.com/rauldpm/InmobilIV/master/data/data.json")
+					file, err := http.Get("https://github.com/rauldpm/InmobilIV/blob/master/app/src/main/resources/data/data.json")
 					if err != nil {
 						fmt.Println(err)
 					}
