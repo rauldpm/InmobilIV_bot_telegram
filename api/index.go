@@ -63,7 +63,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				// Indica la cantidad de inmuebles disponibles
 				case "cantidad":
 					// Obtiene el fichero de datos
-					file, err := http.Get("https://github.com/rauldpm/InmobilIV_bot_telegram/blob/main/data/data.json")
+					file, err := http.Get("https://bot-telegram-731buu3fq.vercel.app/data/data.json")
 					if err != nil {
 						fmt.Println(err)
 					}
