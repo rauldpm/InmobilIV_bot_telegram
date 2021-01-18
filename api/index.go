@@ -2,7 +2,6 @@
 package handler
 
 import (
-
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,6 +9,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"log"
+	"time"
 )
 
 // Respuesta del bot
@@ -29,16 +29,23 @@ type Inmueble struct {
 	Superficie   float32  `json:"superficie"`
 	Habitaciones int      `json:"habitaciones"`
 	Precio		 float32  `json:"precio"`
-	Vivienda     Vivienda `json:"vivienda"`
+	Calle  		 string   `json:"calle"`
+	Portal 		 int      `json:"portal"`
+	Piso   		 int      `json:"piso"`
+	Letra  		 string   `json:"letra"`
 	Propietario  string   `json:"propietario"`
 }
 
-// Representa la direccion de una Vivienda
-type Vivienda struct {
-	Calle  string  `json:"calle"`
-	Portal int     `json:"portal"`
-	Piso   int     `json:"piso"`
-	Letra  string  `json:"letra"`
+var myClient = &http.Client{Timeout: 10 * time.Second}
+
+func getJson (url string, target interface{}) error {
+	r, err := myClient.Get(url)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	return json.NewDecoder(r.Body).Decode(target)
 }
 
 // Funcion serverless
@@ -63,16 +70,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				// Indica la cantidad de inmuebles disponibles
 				case "cantidad":
 					// Obtiene el fichero de datos
-					file, err := http.Get("https://bot-telegram-731buu3fq.vercel.app/data/data.json")
-					if err != nil {
-						fmt.Println(err)
-					}
-
 					var inmuebles Inmuebles
-
-					// Rellena con los datos del fichero la estructura de datos
-					responseData, _ := ioutil.ReadAll(file.Body)
-					json.Unmarshal(responseData, &inmuebles)
+					getJson("https://inmobiliv.herokuapp.com/inmuebles", &inmuebles)
 
 					// Responde segun cantidad
 					if len(inmuebles.Inmuebles) == 0 {
@@ -84,31 +83,27 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 				// Indica todos los inmuebles disponibles
 				case "todo":
 					// Obtiene el fichero de datos
-					file, err := http.Get("https://bot-telegram-731buu3fq.vercel.app/data/data.json")
-					if err != nil {
-						fmt.Println(err)
-					}
-
 					var inmuebles Inmuebles
+					getJson("https://inmobiliv.herokuapp.com/inmuebles", &inmuebles)
 
-					// Rellena con los datos del fichero la estructura de datos
-					responseData, _ := ioutil.ReadAll(file.Body)
-					json.Unmarshal(responseData, &inmuebles)
-
-					// Rellena la respuesta con los datos leidos
-					text = "---\n"
-					for i := 0 ; i < len(inmuebles.Inmuebles) ; i++ {
-						var sup string = fmt.Sprintf("%.2f", inmuebles.Inmuebles[i].Superficie) + "m²"
-						var hab string = strconv.Itoa(inmuebles.Inmuebles[i].Habitaciones)
-						var pre string = fmt.Sprintf("%.2f", inmuebles.Inmuebles[i].Precio) + "€"
-						var cal string = inmuebles.Inmuebles[i].Vivienda.Calle
-						var por string = strconv.Itoa(inmuebles.Inmuebles[i].Vivienda.Portal)
-						var pis string = strconv.Itoa(inmuebles.Inmuebles[i].Vivienda.Piso)
-						var let string = inmuebles.Inmuebles[i].Vivienda.Letra
-						var pro string = inmuebles.Inmuebles[i].Propietario
-						text += "Direccion: " + cal + " Nº" + por + " " + pis + "º" + let
-						text += "\nSuperficie: " + sup + "\nHabitaciones: " + hab + "\nPrecio: " + pre + "\nPropietario: " + pro
-						text += "\n---\n"
+					if len(inmuebles.Inmuebles) == 0 {
+						text = "No hay inmuebles registrados"
+					} else {
+						// Rellena la respuesta con los datos leidos
+						text = "---\n"
+						for i := 0 ; i < len(inmuebles.Inmuebles) ; i++ {
+							var sup string = fmt.Sprintf("%.2f", inmuebles.Inmuebles[i].Superficie) + "m²"
+							var hab string = strconv.Itoa(inmuebles.Inmuebles[i].Habitaciones)
+							var pre string = fmt.Sprintf("%.2f", inmuebles.Inmuebles[i].Precio) + "€"
+							var cal string = inmuebles.Inmuebles[i].Calle
+							var por string = strconv.Itoa(inmuebles.Inmuebles[i].Portal)
+							var pis string = strconv.Itoa(inmuebles.Inmuebles[i].Piso)
+							var let string = inmuebles.Inmuebles[i].Letra
+							var pro string = inmuebles.Inmuebles[i].Propietario
+							text += "Direccion: " + cal + " Nº" + por + " " + pis + "º" + let
+							text += "\nSuperficie: " + sup + "\nHabitaciones: " + hab + "\nPrecio: " + pre + "\nPropietario: " + pro
+							text += "\n---\n"
+						}
 					}
 
 				// Indica que no es un comando valido si no esta indicado arriba
@@ -118,11 +113,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Genera la respuesta
-			data := Response{ Msg: text,
-				Method: "sendMessage",
-				ChatID: update.Message.Chat.ID }
-
-			
+			data := Response{ Msg: text, Method: "sendMessage", ChatID: update.Message.Chat.ID }
 
 			// Genera el mensaje
 			msg, _ := json.Marshal( data )
